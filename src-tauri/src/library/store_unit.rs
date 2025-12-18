@@ -4,8 +4,11 @@ use std::{collections::HashMap, error::Error, fs::File, io::Write, path::PathBuf
 use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[serde(untagged)]
 pub enum StoreUnitType {
     String(String),
+    Array(Vec<String>),
+    None,
 }
 
 pub trait StoreUnit<K: Serialize> {
@@ -19,24 +22,25 @@ pub trait StoreUnit<K: Serialize> {
     fn save(&self) -> Result<(), Box<dyn Error>> {
         let data_content = serde_json::to_string(self.get_map())?;
         let path = Self::get_path()?;
-        let mut file = File::create_new(path)?;
-        file.write(data_content.as_bytes());
+        println!("{:?}", path);
+        let mut file = File::create_new(&path)?;
+        println!("{:?}", data_content);
+        file.write(data_content.as_bytes())?;
         Ok(())
     }
-    fn initialize() -> Result<(), Box<dyn Error>> {
+    fn initialize(&mut self) -> Result<(), Box<dyn Error>> {
         let path = Self::get_path()?;
 
         let exists = std::fs::exists(&path)?;
 
         if !exists {
-            let mut file = File::create_new(&path)?;
-            file.write(b"{}")?;
+            self.save()?;
         }
 
         Ok(())
     }
     fn load(&mut self) -> Result<(), Box<dyn Error>>;
-    fn set(&mut self) -> !;
+    fn set(&mut self, key: K, value: StoreUnitType) -> Result<(), Box<dyn Error>>;
     fn instance() -> &'static Mutex<Self>;
     fn new() -> Self;
 }

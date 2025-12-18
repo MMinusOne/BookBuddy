@@ -1,5 +1,8 @@
 mod library;
-use crate::library::store_unit::StoreUnit;
+use crate::library::{
+    settings::SETTING,
+    store_unit::{StoreUnit, StoreUnitType},
+};
 use library::settings::SettingsStore;
 use once_cell::sync::OnceCell;
 use std::sync::Mutex;
@@ -21,7 +24,9 @@ pub fn run() {
             APP_INSTANCE.get_or_init(|| app_handle.clone());
             let app_data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&app_data_dir)?;
-            SettingsStore::initialize()?;
+            let mut settings_store = SettingsStore::instance().lock()?;
+            settings_store.initialize()?;
+            // settings_store.set(SETTING::Theme, StoreUnitType::String("dark".to_string()))?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![greet])

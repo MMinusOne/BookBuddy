@@ -17,6 +17,7 @@ use crate::{
 };
 
 #[derive(Eq, PartialEq, Clone, Copy, Serialize, Deserialize, Hash)]
+#[serde(rename_all = "snake_case")]
 pub enum SETTING {
     Theme,
     BookLoadPath,
@@ -37,7 +38,10 @@ impl StoreUnit<SETTING> for SettingsStore {
 
     fn new() -> Self {
         let mut settings = Self {
-            store: HashMap::new(),
+            store: HashMap::from([
+                (SETTING::Theme, StoreUnitType::String("dark".to_string())),
+                (SETTING::BookLoadPath, StoreUnitType::None),
+            ]),
         };
 
         match settings.load() {
@@ -64,8 +68,9 @@ impl StoreUnit<SETTING> for SettingsStore {
         Ok(())
     }
 
-    fn set(&mut self) -> ! {
-        todo!()
+    fn set(&mut self, key: SETTING, value: StoreUnitType) -> Result<(), Box<dyn Error>> {
+        self.store.insert(key, value);
+        Ok(())
     }
 }
 
