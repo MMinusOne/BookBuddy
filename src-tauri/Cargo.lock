@@ -275,6 +275,7 @@ dependencies = [
 name = "bookbuddy"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
  "serde",
  "serde_json",
  "tauri",
