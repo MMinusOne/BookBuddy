@@ -3,8 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error::Error, fs::File, io::Write, path::PathBuf, sync::Mutex};
 use tauri::Manager;
 
-#[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
-pub enum StoreUnitType {}
+#[derive(Serialize, Deserialize, Eq, PartialEq, Clone)]
+pub enum StoreUnitType {
+    String(String),
+}
 
 pub trait StoreUnit<K: Serialize> {
     const STORE_FILE_PATH: &'static str;
@@ -33,8 +35,8 @@ pub trait StoreUnit<K: Serialize> {
 
         Ok(())
     }
-    fn load(&self) -> !;
-    fn set(&self) -> !;
+    fn load(&mut self) -> Result<(), Box<dyn Error>>;
+    fn set(&mut self) -> !;
     fn instance() -> &'static Mutex<Self>;
     fn new() -> Self;
 }

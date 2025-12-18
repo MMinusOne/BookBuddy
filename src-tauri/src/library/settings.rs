@@ -16,7 +16,7 @@ use crate::{
     APP_INSTANCE,
 };
 
-#[derive(Eq, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Copy, Serialize, Deserialize, Hash)]
 pub enum SETTING {
     Theme,
     BookLoadPath,
@@ -36,11 +36,14 @@ impl StoreUnit<SETTING> for SettingsStore {
     }
 
     fn new() -> Self {
-        let settings = Self {
+        let mut settings = Self {
             store: HashMap::new(),
         };
 
-        settings.load();
+        match settings.load() {
+            Ok(_) => {}
+            Err(e) => eprintln!("Failed to load SettingsStore {:?}", e),
+        };
 
         settings
     }
@@ -49,11 +52,25 @@ impl StoreUnit<SETTING> for SettingsStore {
         SETTINGS_STORE_INSTANCE.get_or_init(|| Mutex::new(Self::new()))
     }
 
-    fn load(&self) -> ! {
-        todo!()
+    fn load(&mut self) -> Result<(), Box<dyn Error>> {
+        let file_contents = std::fs::read(Self::get_path()?)?;
+        let data: SettingsData = serde_json::from_slice(&file_contents)?;
+        self.store
+            .insert(SETTING::Theme, StoreUnitType::String(data.theme));
+        self.store.insert(
+            SETTING::BookLoadPath,
+            StoreUnitType::String(data.book_load_path),
+        );
+        Ok(())
     }
 
-    fn set(&self) -> ! {
+    fn set(&mut self) -> ! {
         todo!()
     }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SettingsData {
+    theme: String,
+    book_load_path: String,
 }
