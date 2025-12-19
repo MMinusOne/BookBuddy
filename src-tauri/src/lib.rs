@@ -1,12 +1,7 @@
 mod library;
-use crate::library::store::Store;
+use library::store;
 use once_cell::sync::OnceCell;
 use tauri::{AppHandle, Manager};
-
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
 
 pub static APP_INSTANCE: OnceCell<AppHandle> = OnceCell::new();
 
@@ -21,7 +16,14 @@ pub fn run() {
             std::fs::create_dir_all(&app_data_dir)?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            store::get_books,
+            store::get_book,
+            store::get_theme,
+            store::set_theme,
+            store::load_book_directory,
+            store::morph_book,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

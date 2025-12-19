@@ -282,6 +282,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "uuid",
+ "walkdir",
 ]
 
 [[package]]

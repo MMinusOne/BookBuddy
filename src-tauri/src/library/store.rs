@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::time::Duration;
 use std::{collections::HashMap, error::Error, sync::Mutex};
 use tauri::Manager;
 
@@ -24,14 +25,14 @@ impl Store {
     pub fn get_theme(&self) -> &String {
         &self.theme
     }
-    pub fn add_books(&mut self, book: Book) {
+    pub fn add_book(&mut self, book: Book) {
         self.books.push(book);
     }
     pub fn delete_books(&mut self) {}
     pub fn get_books(&self) -> Vec<Book> {
         self.books.clone()
     }
-    pub fn get_book(&self, book_id: String) -> Option<&Book> {
+    pub fn get_book(&self, book_id: &str) -> Option<&Book> {
         for book in &self.books {
             if book.id == book_id {
                 return Some(book);
@@ -40,33 +41,14 @@ impl Store {
 
         None
     }
-    pub fn add_favourites(&mut self, book_ids: Vec<String>) {
+    pub fn get_book_mut(&mut self, book_id: &str) -> Option<&mut Book> {
         for book in &mut self.books {
-            for book_id in &book_ids {
-                if book_id == &book.id {
-                    book.is_favourte = true;
-                    break;
-                }
+            if book.id == book_id {
+                return Some(book);
             }
         }
-    }
-    pub fn remove_favourites(&mut self, book_ids: Vec<String>) {
-        for book in &mut self.books {
-            for book_id in &book_ids {
-                if book_id == &book.id {
-                    book.is_favourte = false;
-                    break;
-                }
-            }
-        }
-    }
-    pub fn add_text_highlights(&mut self, book_id: String, text_highlights: Vec<TextHighlight>) {
-        for book in &mut self.books {
-            if book_id == book_id {
-                book.text_highlights.extend(text_highlights);
-                break;
-            }
-        }
+
+        None
     }
 
     fn save(&self) -> Result<(), Box<dyn Error>> {
@@ -75,7 +57,7 @@ impl Store {
         let mut file = File::create(app_data_dir.join(&store_path))?;
         let store_data_str = serde_json::to_string(&self)?;
         let serialized_store = store_data_str.as_bytes();
-        file.write(serialized_store);
+        file.write(serialized_store)?;
         Ok(())
     }
 
@@ -84,7 +66,7 @@ impl Store {
         let store_path = app_data_dir.join(Self::STORE_FILE_NAME);
 
         if !std::fs::exists(&store_path)? {
-            self.save();
+            self.save()?;
         } else {
             let file_contents = std::fs::read(store_path)?;
             let file_json: Self = serde_json::from_slice(&file_contents)?;
@@ -101,7 +83,7 @@ impl Store {
             books: Vec::new(),
         };
 
-        store.init();
+        store.init().unwrap();
 
         store
     }
@@ -112,23 +94,26 @@ impl Store {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Book {
-    id: String,
-    name: String,
-    description: String,
-    is_favourte: bool,
-    progress: f32,
-    time_spent: f32,
-    text_highlights: Vec<TextHighlight>,
-    path: PathBuf,
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub page: u16,
+    pub progress: f32,
+    pub score: Option<f32>,
+    pub is_favourte: bool,
+    pub is_open: bool,
+    pub time_spent: Duration,
+    pub text_highlights: Vec<TextHighlight>,
+    pub path: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TextHighlight {
-    page_number: u16,
-    line_number: u16,
-    start_pos: u16,
-    length: u16,
-    color: TextHighlightColor,
+    pub page_number: u16,
+    pub line_number: u16,
+    pub start_pos: u16,
+    pub length: u16,
+    pub color: TextHighlightColor,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -141,4 +126,80 @@ pub enum TextHighlightColor {
     PINK,
     YELLOW,
     PURPLE,
+}
+
+#[tauri::command]
+pub async fn get_books(book_ids: Vec<String>) -> Result<Vec<Book>, String> {
+    let books = STORE_INSTANCE.get().unwrap().lock().unwrap().get_books();
+    Ok(books)
+}
+
+#[tauri::command]
+pub async fn get_book(book_id: String) -> Result<Book, String> {
+    let book = STORE_INSTANCE
+        .get()
+        .unwrap()
+        .lock()
+        .unwrap()
+        .get_book(&book_id)
+        .unwrap()
+        .clone();
+    Ok(book)
+}
+
+#[tauri::command]
+pub async fn get_theme() -> Result<String, String> {
+    let theme = STORE_INSTANCE
+        .get()
+        .unwrap()
+        .lock()
+        .unwrap()
+        .get_theme()
+        .clone();
+    Ok(theme)
+}
+
+#[tauri::command]
+pub async fn set_theme(theme: String) -> Result<(), String> {
+    let store = STORE_INSTANCE.get().unwrap();
+    let mut store = store.lock().unwrap();
+    store.set_theme(theme);
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn load_book_directory(path: String) -> Result<(), String> {
+    use walkdir::WalkDir;
+    let store = STORE_INSTANCE.get().unwrap();
+    let mut store = store.lock().unwrap();
+
+    for entry in WalkDir::new(path).into_iter().filter_map(Result::ok) {
+        if entry.file_type().is_file() && entry.path().extension().unwrap() == "pdf" {
+            let book = Book {
+                id: uuid::Uuid::new_v4().to_string(),
+                name: entry.file_name().to_str().unwrap().to_string(),
+                description: String::new(),
+                is_favourte: false,
+                is_open: false,
+                progress: 0f32,
+                page: 0u16,
+                time_spent: Duration::new(0, 0),
+                score: None,
+                path: entry.path().to_path_buf(),
+                text_highlights: Vec::new(),
+            };
+            store.add_book(book);
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn morph_book(new_book: Book) -> Result<(), String> {
+    let store = STORE_INSTANCE.get().unwrap();
+    let mut store = store.lock().unwrap();
+    let old_book = store.get_book_mut(&new_book.id).unwrap();
+    *old_book = new_book;
+    Ok(())
 }
