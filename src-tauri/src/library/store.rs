@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use std::time::Duration;
+use std::time::{Duration, Instant, SystemTime};
 use std::{collections::HashMap, error::Error, sync::Mutex};
 use tauri::Manager;
 
@@ -21,12 +21,14 @@ impl Store {
 
     pub fn set_theme(&mut self, theme: String) {
         self.theme = theme;
+        self.save().unwrap();
     }
     pub fn get_theme(&self) -> &String {
         &self.theme
     }
     pub fn add_book(&mut self, book: Book) {
         self.books.push(book);
+        self.save().unwrap();
     }
     pub fn delete_books(&mut self) {}
     pub fn get_books(&self) -> Vec<Book> {
@@ -51,7 +53,7 @@ impl Store {
         None
     }
 
-    fn save(&self) -> Result<(), Box<dyn Error>> {
+    pub fn save(&self) -> Result<(), Box<dyn Error>> {
         let app_data_dir = APP_INSTANCE.get().unwrap().path().app_data_dir()?;
         let store_path = app_data_dir.join(Self::STORE_FILE_NAME);
         let mut file = File::create(app_data_dir.join(&store_path))?;
@@ -103,6 +105,8 @@ pub struct Book {
     pub is_favourte: bool,
     pub is_open: bool,
     pub time_spent: Duration,
+    pub completed_at: Option<SystemTime>,
+    pub last_time_opened: SystemTime,
     pub text_highlights: Vec<TextHighlight>,
     pub path: PathBuf,
 }
@@ -185,6 +189,8 @@ pub async fn load_book_directory(path: String) -> Result<(), String> {
                 page: 0u16,
                 time_spent: Duration::new(0, 0),
                 score: None,
+                completed_at: None,
+                last_time_opened: SystemTime::now(),
                 path: entry.path().to_path_buf(),
                 text_highlights: Vec::new(),
             };
