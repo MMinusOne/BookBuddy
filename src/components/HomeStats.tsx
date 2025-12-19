@@ -103,27 +103,18 @@ export default function HomeStats() {
               >
                 <XAxis
                   dataKey="day"
-                  tick={{ fill: "hsl(var(--bc))" }}
-                  axisLine={{ stroke: "hsl(var(--bc))" }}
+                  tick={{ fill: "var(--color-base-content)" }}
+                  axisLine={{ stroke: "var(--color-base-content)" }}
                 />
                 <YAxis
-                  tick={{ fill: "hsl(var(--bc))" }}
-                  axisLine={{ stroke: "hsl(var(--bc))" }}
+                  tick={{ fill: "var(--color-base-content)" }}
+                  axisLine={{ stroke: "var(--color-base-content)" }}
                   label={{
                     value: "Hours",
                     angle: -90,
                     position: "insideLeft",
-                    style: { fill: "hsl(var(--bc))" },
+                    style: { fill: "var(--color-base-content)" },
                   }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--b1))",
-                    border: "1px solid hsl(var(--bc) / 0.2)",
-                    borderRadius: "0.5rem",
-                    color: "hsl(var(--bc))",
-                  }}
-                  labelStyle={{ color: "hsl(var(--bc))" }}
                 />
                 <Bar
                   dataKey="hours"
