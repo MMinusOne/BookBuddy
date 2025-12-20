@@ -1,18 +1,5 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
-import {
-  FaBook,
-  FaClock,
-  FaCalendarDay,
-  FaChartLine,
-  FaRunning,
-} from "react-icons/fa";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
 import getDaisyUiColor from "../utils/daisyui";
 import { FaBookOpen, FaGauge } from "react-icons/fa6";
 
@@ -27,26 +14,9 @@ const weeklyData = [
   { day: "Sun", hours: 3.8 },
 ];
 
-// Mock statistics
-const stats = {
-  totalTimeSpent: "22.1",
-  booksRead: "12",
-  mostActiveDay: "Saturday",
-  averageDailyHours: "3.2",
-  weeklyGoal: "25",
-  completionRate: "88",
-};
-
 export default function HomeStats() {
   const primaryColor = getDaisyUiColor("--color-primary");
-  const maxHours = Math.max(...weeklyData.map((d) => d.hours));
 
-  /**
-   * Time spent reading - this week
-   * Books Read - Total this month
-   * Most active day - hours on
-   * Average daily - per day this week
-   */
   return (
     <div className="bg-base-300 p-6 w-full h-full">
       <div className="flex lg:flex-row flex-col gap-6 h-full">

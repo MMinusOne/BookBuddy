@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use std::time::{Duration, Instant, SystemTime};
-use std::{collections::HashMap, error::Error, sync::Mutex};
+use std::time::{Duration, SystemTime};
+use std::{error::Error, sync::Mutex};
 use tauri::Manager;
 
 #[derive(Serialize, Deserialize)]
