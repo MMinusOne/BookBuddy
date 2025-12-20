@@ -104,6 +104,7 @@ impl Store {
 
         store
     }
+    
     pub fn instance() -> &'static Mutex<Self> {
         STORE_INSTANCE.get_or_init(|| Mutex::new(Self::new()))
     }

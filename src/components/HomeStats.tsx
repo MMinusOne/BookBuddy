@@ -1,31 +1,9 @@
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
 import getDaisyUiColor from "../utils/daisyui";
 import { FaBookOpen, FaGauge } from "react-icons/fa6";
 
-export default function Home() {
-  return (
-    <>
-      <div className="flex flex-col w-full h-full">
-        <Header />
-        <div className="flex flex-row flex-1 w-full overflow-hidden">
-          <Sidebar />
-          <div className="flex flex-col flex-1 w-full overflow-hidden">
-            <div className="flex justify-center items-center p-4 w-full h-[40%] shrink-0">
-              <Stats />
-            </div>
-            <div className="flex-1 p-4 w-full overflow-y-auto">
-              <BookList />
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
+// Mock data for the week
 const weeklyData = [
   { day: "Mon", hours: 2.5 },
   { day: "Tue", hours: 1.8 },
@@ -36,23 +14,25 @@ const weeklyData = [
   { day: "Sun", hours: 3.8 },
 ];
 
-function Stats() {
+export default function HomeStats() {
+  const primaryColor = getDaisyUiColor("--color-primary");
+
   return (
-    <div className="bg-base-300 p-6 rounded-2xl w-full h-full">
+    <div className="bg-base-300 p-6 w-full h-full rounded-2xl">
       <div className="flex lg:flex-row flex-col gap-6 h-full">
-        <div className="flex flex-col justify-center w-[40%]">
-          <span className="m-4 font-bold text-2xl">Activity Overview</span>
+        <div className="w-[40%] flex flex-col justify-center">
+          <span className="font-bold text-2xl m-4">Activity Overview</span>
           <div className="flex flex-row">
-            <div className="shadow-lg stat">
-              <div className="text-primary stat-figure">
+            <div className="stat shadow-lg">
+              <div className="stat-figure text-primary">
                 <FaClock />
               </div>
               <div className="stat-title">time spent reading</div>
               <div className="stat-value">10h</div>
               <div className="stat-desc">this week</div>
             </div>
-            <div className="shadow-lg stat">
-              <div className="text-primary stat-figure">
+            <div className="stat shadow-lg">
+              <div className="stat-figure text-primary">
                 <FaBookOpen />
               </div>
               <div className="stat-title">books read</div>
@@ -61,16 +41,16 @@ function Stats() {
             </div>
           </div>
           <div className="flex flex-row">
-            <div className="shadow-lg stat">
-              <div className="text-primary stat-figure">
+            <div className="stat shadow-lg">
+              <div className="stat-figure text-primary">
                 <FaRunning />
               </div>
               <div className="stat-title">most active day</div>
               <div className="stat-value">10h</div>
               <div className="stat-desc">thursday 12/12/2025</div>
             </div>
-            <div className="shadow-lg stat">
-              <div className="text-primary stat-figure">
+            <div className="stat shadow-lg">
+              <div className="stat-figure text-primary">
                 <FaGauge />
               </div>
               <div className="stat-title">average daily</div>
@@ -108,7 +88,7 @@ function Stats() {
                 />
                 <Bar
                   dataKey="hours"
-                  className="opacity-90 fill-primary"
+                  fill={primaryColor}
                   radius={[8, 8, 0, 0]}
                   name="Hours Read"
                 />
@@ -118,53 +98,5 @@ function Stats() {
         </div>
       </div>
     </div>
-  );
-}
-
-function BookList() {
-  return (
-    <>
-      <div className="p-2">
-        <div
-          style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          }}
-          className="gap-4 grid grid-auto-fit"
-        >
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
-        </div>
-      </div>
-    </>
-  );
-}
-
-function BookCard() {
-  return (
-    <>
-      <div className="bg-base-100 shadow-sm w-60 card">
-        <figure>
-          <img
-            src="https:img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-            alt="Shoes"
-          />
-        </figure>
-        <div className="card-body">
-          <h2 className="card-title">Card Title</h2>
-          <p>
-            A card component has a figure, a body part, and inside body there
-            are title and actions parts
-          </p>
-          <div className="justify-end card-actions">
-            <button className="btn btn-primary">Buy Now</button>
-          </div>
-        </div>
-      </div>
-    </>
   );
 }
