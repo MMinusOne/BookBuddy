@@ -5,7 +5,6 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
-use std::os::windows::fs::MetadataExt;
 use std::path::PathBuf;
 use std::time::{Duration, SystemTime};
 use std::{error::Error, sync::Mutex};
@@ -104,7 +103,7 @@ impl Store {
 
         store
     }
-    
+
     pub fn instance() -> &'static Mutex<Self> {
         STORE_INSTANCE.get_or_init(|| Mutex::new(Self::new()))
     }
@@ -190,32 +189,12 @@ pub async fn set_theme(theme: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn load_book_directory(path: String) -> Result<(), String> {
-    use walkdir::WalkDir;
+pub async fn add_books(books: Vec<Book>) -> Result<(), String> {
     let store = STORE_INSTANCE.get().unwrap();
     let mut store = store.lock().unwrap();
 
-    for entry in WalkDir::new(path).into_iter().filter_map(Result::ok) {
-        if entry.file_type().is_file() && entry.path().extension().unwrap() == "pdf" {
-            let book = Book {
-                id: uuid::Uuid::new_v4().to_string(),
-                name: entry.file_name().to_str().unwrap().to_string(),
-                description: String::new(),
-                is_favourte: false,
-                is_open: false,
-                progress: 0f32,
-                page: 0,
-                page_count: 0,
-                time_spent: Duration::new(0, 0),
-                score: None,
-                completed_at: None,
-                last_time_opened: SystemTime::now(),
-                path: entry.path().to_path_buf(),
-                file_size: entry.metadata().unwrap().file_size(),
-                text_highlights: Vec::new(),
-            };
-            store.add_book(book);
-        }
+    for book in books {
+        store.books.push(book);
     }
 
     Ok(())

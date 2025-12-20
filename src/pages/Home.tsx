@@ -2,7 +2,6 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
-import getDaisyUiColor from "../utils/daisyui";
 import { FaBookOpen, FaGauge } from "react-icons/fa6";
 
 export default function Home() {
@@ -12,11 +11,11 @@ export default function Home() {
         <Header />
         <div className="flex flex-row flex-1 w-full overflow-hidden">
           <Sidebar />
-          <div className="flex flex-col flex-1 w-full overflow-hidden">
+          <div className="flex flex-col flex-1 w-full overflow-hidden overflow-y-auto">
             <div className="flex justify-center items-center p-4 w-full h-[40%] shrink-0">
               <Stats />
             </div>
-            <div className="flex-1 p-4 w-full overflow-y-auto">
+            <div className="flex-1 p-4 w-full">
               <BookList />
             </div>
           </div>

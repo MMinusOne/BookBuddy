@@ -3,7 +3,6 @@ import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
 import getDaisyUiColor from "../utils/daisyui";
 import { FaBookOpen, FaGauge } from "react-icons/fa6";
 
-// Mock data for the week
 const weeklyData = [
   { day: "Mon", hours: 2.5 },
   { day: "Tue", hours: 1.8 },
