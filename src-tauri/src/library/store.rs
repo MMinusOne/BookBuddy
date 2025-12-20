@@ -1,8 +1,11 @@
-use crate::APP_INSTANCE;
+use crate::library::date::Date;
+use crate::{library::date, APP_INSTANCE};
+use chrono::prelude::*;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
+use std::os::windows::fs::MetadataExt;
 use std::path::PathBuf;
 use std::time::{Duration, SystemTime};
 use std::{error::Error, sync::Mutex};
@@ -11,6 +14,9 @@ use tauri::Manager;
 #[derive(Serialize, Deserialize)]
 pub struct Store {
     theme: String,
+    hours_read_this_week: [u8; 7],
+    average_hours_this_month: u16,
+    most_active_day: date::Date,
     books: Vec<Book>,
 }
 
@@ -73,15 +79,24 @@ impl Store {
             let file_contents = std::fs::read(store_path)?;
             let file_json: Self = serde_json::from_slice(&file_contents)?;
 
-            self.books = file_json.books;
+            *self = file_json;
         }
 
         Ok(())
     }
 
     fn new() -> Self {
+        let now = Utc::now();
+
         let mut store = Self {
             theme: String::from("dark"),
+            average_hours_this_month: 0,
+            hours_read_this_week: [0; 7],
+            most_active_day: Date {
+                day: now.day(),
+                month: now.month(),
+                year: now.year(),
+            },
             books: Vec::new(),
         };
 
@@ -100,6 +115,7 @@ pub struct Book {
     pub name: String,
     pub description: String,
     pub page: u16,
+    pub page_count: u16,
     pub progress: f32,
     pub score: Option<f32>,
     pub is_favourte: bool,
@@ -108,6 +124,7 @@ pub struct Book {
     pub completed_at: Option<SystemTime>,
     pub last_time_opened: SystemTime,
     pub text_highlights: Vec<TextHighlight>,
+    pub file_size: u64,
     pub path: PathBuf,
 }
 
@@ -186,12 +203,14 @@ pub async fn load_book_directory(path: String) -> Result<(), String> {
                 is_favourte: false,
                 is_open: false,
                 progress: 0f32,
-                page: 0u16,
+                page: 0,
+                page_count: 0,
                 time_spent: Duration::new(0, 0),
                 score: None,
                 completed_at: None,
                 last_time_opened: SystemTime::now(),
                 path: entry.path().to_path_buf(),
+                file_size: entry.metadata().unwrap().file_size(),
                 text_highlights: Vec::new(),
             };
             store.add_book(book);
