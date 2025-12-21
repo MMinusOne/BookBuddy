@@ -8,6 +8,7 @@ pub static APP_INSTANCE: OnceCell<AppHandle> = OnceCell::new();
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let app_handle = app.app_handle();
@@ -21,7 +22,7 @@ pub fn run() {
             store::get_book,
             store::get_theme,
             store::set_theme,
-            store::add_books,
+            store::load_book_path,
             store::morph_book,
         ])
         .run(tauri::generate_context!())

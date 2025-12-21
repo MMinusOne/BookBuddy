@@ -125,7 +125,6 @@ pub struct Book {
     pub last_time_opened: SystemTime,
     pub text_highlights: Vec<TextHighlight>,
     pub file_size: u64,
-    pub path: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -189,13 +188,10 @@ pub async fn set_theme(theme: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn add_books(books: Vec<Book>) -> Result<(), String> {
-    let store = STORE_INSTANCE.get().unwrap();
-    let mut store = store.lock().unwrap();
+pub async fn load_book_path(book_path: PathBuf) -> Result<(), String> {
+    let mut store = Store::instance().lock().unwrap();
 
-    for book in books {
-        store.books.push(book);
-    }
+    println!("{:#?}", book_path);
 
     Ok(())
 }

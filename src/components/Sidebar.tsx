@@ -1,4 +1,5 @@
-import { ChangeEvent, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import {
   FaBook,
   FaChartLine,
@@ -11,15 +12,27 @@ import { FaFolder } from "react-icons/fa6";
 import usePage, { Page } from "../lib/pageState";
 
 export default function Sidebar() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { page, setPage } = usePage();
 
-  const handleLoadDirectoryClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleLoadDirectoryClick = async () => {
+    const bookPaths = await open({
+      directory: false,
+      multiple: true,
+      title: "Choose book files",
+      filters: [
+        {
+          name: "Book Extensions",
+          extensions: ["PDF"],
+        },
+      ],
+      recursive: true,
+    });
 
-  const handleFileInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    console.log(event.currentTarget.files);
+    if (!bookPaths) return;
+
+    for (const bookPath of bookPaths) {
+      await invoke("load_book_path", { bookPath });
+    }
   };
 
   const selectedStyle = (p: Page) => {
@@ -45,15 +58,6 @@ export default function Sidebar() {
             <FaFolder />
             Load Directory
           </button>
-          <input
-            type="file"
-            style={{ display: "none" }}
-            ref={fileInputRef}
-            onChange={handleFileInputChange}
-            //@ts-ignore
-            webkitdirectory=""
-            multiple
-          />
         </div>
 
         <ul className="menu menu-md rounded-box w-full items-center *:*:opacity-70 *:*:text-[15px] *:*:p-2 *:w-full *:*:mx-4">
