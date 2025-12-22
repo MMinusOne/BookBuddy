@@ -3,6 +3,8 @@ import Sidebar from "../components/Sidebar";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
 import { FaBookOpen, FaGauge } from "react-icons/fa6";
+import { useGetBooks } from "../lib/services/getBooks";
+import { Book } from "../lib/Book";
 
 export default function Home() {
   return (
@@ -121,6 +123,8 @@ function Stats() {
 }
 
 function BookList() {
+  const books = useGetBooks();
+
   return (
     <>
       <div className="p-2">
@@ -130,20 +134,16 @@ function BookList() {
           }}
           className="gap-4 grid grid-auto-fit"
         >
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
-          <BookCard />
+          {books.map((book) => (
+            <BookCard book={book} />
+          ))}
         </div>
       </div>
     </>
   );
 }
 
-function BookCard() {
+function BookCard({ book }: { book: Book }) {
   return (
     <>
       <div className="bg-base-100 shadow-sm w-60 card">

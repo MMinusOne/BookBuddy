@@ -1,3 +1,4 @@
+use crate::library::bookmetadata_factory::BookMetadataFactory;
 use crate::library::date::Date;
 use crate::{library::date, APP_INSTANCE};
 use chrono::prelude::*;
@@ -11,7 +12,7 @@ use std::time::{Duration, SystemTime};
 use std::{error::Error, sync::Mutex};
 use tauri::Manager;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Store {
     theme: String,
     hours_read_this_week: [u8; 7],
@@ -109,13 +110,13 @@ impl Store {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Book {
     pub id: String,
     pub name: String,
     pub description: String,
     pub page: u16,
-    pub page_count: u16,
+    pub page_count: usize,
     pub progress: f32,
     pub score: Option<f32>,
     pub is_favourte: bool,
@@ -125,24 +126,26 @@ pub struct Book {
     pub last_time_opened: Option<SystemTime>,
     pub text_highlights: Vec<TextHighlight>,
     pub file_size: u64,
+    pub book_path: PathBuf,
+    pub thumbnail_path: PathBuf,
 }
 
 impl Book {
-    fn init_copy<P>(&self, book_path: P) -> Result<(), Box<dyn Error>>
+    fn init_copy<P>(&self, book_path: P) -> Result<PathBuf, Box<dyn Error>>
     where
         P: AsRef<Path>,
     {
         let app_data_dir = APP_INSTANCE.get().unwrap().path().app_data_dir()?;
-        let books_path = app_data_dir.join("books");
-        std::fs::create_dir_all(&books_path)?;
-        let mut book_dir = books_path.join(&self.id);
-        book_dir.set_extension("pdf");
-        std::fs::copy(&book_path, &book_dir)?;
-        Ok(())
+        let books_dir = app_data_dir.join("books");
+        std::fs::create_dir_all(&books_dir)?;
+        let mut copied_book_path = books_dir.join(&self.id);
+        copied_book_path.set_extension("pdf");
+        std::fs::copy(&book_path, &copied_book_path)?;
+        Ok(copied_book_path)
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TextHighlight {
     pub page_number: u16,
     pub line_number: u16,
@@ -151,7 +154,7 @@ pub struct TextHighlight {
     pub color: TextHighlightColor,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum TextHighlightColor {
     RED,
     BLUE,
@@ -164,8 +167,8 @@ pub enum TextHighlightColor {
 }
 
 #[tauri::command]
-pub async fn get_books(book_ids: Vec<String>) -> Result<Vec<Book>, tauri::Error> {
-    let books = STORE_INSTANCE.get().unwrap().lock().unwrap().get_books();
+pub async fn get_books() -> Result<Vec<Book>, tauri::Error> {
+    let books = Store::instance().lock().unwrap().get_books();
     Ok(books)
 }
 
@@ -199,8 +202,10 @@ pub async fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
     let metadata = std::fs::metadata(&book_path).unwrap();
     let file_stem = book_path.file_stem().unwrap();
 
-    let book = Book {
-        id: uuid::Uuid::new_v4().to_string(),
+    let book_id = uuid::Uuid::new_v4().to_string();
+
+    let mut book = Book {
+        id: book_id.clone(),
         name: String::from(file_stem.to_str().unwrap()),
         description: String::new(),
         page: 0,
@@ -214,11 +219,20 @@ pub async fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
         last_time_opened: None,
         text_highlights: Vec::new(),
         file_size: metadata.file_size(),
+        book_path: PathBuf::new(),
+        thumbnail_path: PathBuf::new(),
     };
 
-    book.init_copy(book_path).unwrap();
+    let copied_book_path = book.init_copy(&book_path).unwrap();
+    let book_metadata = BookMetadataFactory::metadata_from(&copied_book_path, &book_id).unwrap();
+
+    book.book_path = copied_book_path;
+    book.thumbnail_path = book_metadata.thumbnail_path;
+    book.page_count = book_metadata.page_count;
 
     store.add_book(book);
+
+    println!("{:#?}", store);
 
     Ok(())
 }

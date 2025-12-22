@@ -10,7 +10,7 @@ interface BookData {
   is_open: boolean;
   time_spent: number;
   completed_at?: number;
-  last_time_opened: number;
+  last_time_opened?: number;
   text_highlights: TextHighlight[];
   file_size: number;
 }

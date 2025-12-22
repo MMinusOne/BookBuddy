@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { FaFolder } from "react-icons/fa6";
 import usePage, { Page } from "../lib/pageState";
+import { loadBookPath } from "../lib/services/loadBookPath";
 
 export default function Sidebar() {
   const { page, setPage } = usePage();
@@ -31,7 +32,7 @@ export default function Sidebar() {
     if (!bookPaths) return;
 
     for (const bookPath of bookPaths) {
-      await invoke("load_book_path", { bookPath });
+      await loadBookPath({ bookPath });
     }
   };
 
