@@ -31,9 +31,10 @@ impl BookMetadataFactory {
         let thumb = pdf.thumb()?;
 
         let thumbnails_dir = Self::get_thumbnails_dir()?;
-        let thumbnail_path = thumbnails_dir.join(book_id);
+        let mut thumbnail_path = thumbnails_dir.join(book_id);
+        thumbnail_path.set_extension("png");
 
-        std::fs::write(thumbnails_dir.join(book_id), &thumb)?;
+        std::fs::write(&thumbnail_path, &thumb)?;
 
         let pages = doc.catalog()?.get(b"Pages")?.as_reference()?;
         let pages_dict = doc.get_dictionary(pages)?;
