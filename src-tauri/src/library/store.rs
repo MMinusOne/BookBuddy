@@ -5,7 +5,8 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
+use std::os::windows::fs::MetadataExt;
+use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 use std::{error::Error, sync::Mutex};
 use tauri::Manager;
@@ -20,7 +21,6 @@ pub struct Store {
 }
 
 static STORE_INSTANCE: OnceCell<Mutex<Store>> = OnceCell::new();
-
 impl Store {
     const STORE_FILE_NAME: &'static str = "store.json";
 
@@ -122,9 +122,24 @@ pub struct Book {
     pub is_open: bool,
     pub time_spent: Duration,
     pub completed_at: Option<SystemTime>,
-    pub last_time_opened: SystemTime,
+    pub last_time_opened: Option<SystemTime>,
     pub text_highlights: Vec<TextHighlight>,
     pub file_size: u64,
+}
+
+impl Book {
+    fn init_copy<P>(&self, book_path: P) -> Result<(), Box<dyn Error>>
+    where
+        P: AsRef<Path>,
+    {
+        let app_data_dir = APP_INSTANCE.get().unwrap().path().app_data_dir()?;
+        let books_path = app_data_dir.join("books");
+        std::fs::create_dir_all(&books_path)?;
+        let mut book_dir = books_path.join(&self.id);
+        book_dir.set_extension("pdf");
+        std::fs::copy(&book_path, &book_dir)?;
+        Ok(())
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -149,16 +164,14 @@ pub enum TextHighlightColor {
 }
 
 #[tauri::command]
-pub async fn get_books(book_ids: Vec<String>) -> Result<Vec<Book>, String> {
+pub async fn get_books(book_ids: Vec<String>) -> Result<Vec<Book>, tauri::Error> {
     let books = STORE_INSTANCE.get().unwrap().lock().unwrap().get_books();
     Ok(books)
 }
 
 #[tauri::command]
-pub async fn get_book(book_id: String) -> Result<Book, String> {
-    let book = STORE_INSTANCE
-        .get()
-        .unwrap()
+pub async fn get_book(book_id: String) -> Result<Book, tauri::Error> {
+    let book = Store::instance()
         .lock()
         .unwrap()
         .get_book(&book_id)
@@ -168,38 +181,51 @@ pub async fn get_book(book_id: String) -> Result<Book, String> {
 }
 
 #[tauri::command]
-pub async fn get_theme() -> Result<String, String> {
-    let theme = STORE_INSTANCE
-        .get()
-        .unwrap()
-        .lock()
-        .unwrap()
-        .get_theme()
-        .clone();
+pub async fn get_theme() -> Result<String, tauri::Error> {
+    let theme = Store::instance().lock().unwrap().get_theme().clone();
     Ok(theme)
 }
 
 #[tauri::command]
-pub async fn set_theme(theme: String) -> Result<(), String> {
-    let store = STORE_INSTANCE.get().unwrap();
-    let mut store = store.lock().unwrap();
+pub async fn set_theme(theme: String) -> Result<(), tauri::Error> {
+    let mut store = Store::instance().lock().unwrap();
     store.set_theme(theme);
     Ok(())
 }
 
 #[tauri::command]
-pub async fn load_book_path(book_path: PathBuf) -> Result<(), String> {
+pub async fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
     let mut store = Store::instance().lock().unwrap();
+    let metadata = std::fs::metadata(&book_path).unwrap();
+    let file_stem = book_path.file_stem().unwrap();
 
-    println!("{:#?}", book_path);
+    let book = Book {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: String::from(file_stem.to_str().unwrap()),
+        description: String::new(),
+        page: 0,
+        page_count: 0,
+        progress: 0f32,
+        score: None,
+        is_favourte: false,
+        is_open: false,
+        time_spent: Duration::new(0, 0),
+        completed_at: None,
+        last_time_opened: None,
+        text_highlights: Vec::new(),
+        file_size: metadata.file_size(),
+    };
+
+    book.init_copy(book_path).unwrap();
+
+    store.add_book(book);
 
     Ok(())
 }
 
 #[tauri::command]
-pub async fn morph_book(new_book: Book) -> Result<(), String> {
-    let store = STORE_INSTANCE.get().unwrap();
-    let mut store = store.lock().unwrap();
+pub async fn morph_book(new_book: Book) -> Result<(), tauri::Error> {
+    let mut store = Store::instance().lock().unwrap();
     let old_book = store.get_book_mut(&new_book.id).unwrap();
     *old_book = new_book;
     Ok(())
