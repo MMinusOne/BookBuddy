@@ -22,7 +22,7 @@ pub fn run() {
             store::get_book,
             store::get_theme,
             store::set_theme,
-            store::load_book_path,
+            store::load_book_paths,
             store::delete_book,
             store::morph_book,
         ])
