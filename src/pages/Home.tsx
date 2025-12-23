@@ -5,6 +5,7 @@ import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
 import { FaBookOpen, FaGauge } from "react-icons/fa6";
 import { useGetBooks } from "../lib/services/getBooks";
 import { Book } from "../lib/Book";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 export default function Home() {
   return (
@@ -130,7 +131,7 @@ function BookList() {
       <div className="p-2">
         <div
           style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, 18rem)",
           }}
           className="gap-4 grid grid-auto-fit"
         >
@@ -144,23 +145,39 @@ function BookList() {
 }
 
 function BookCard({ book }: { book: Book }) {
+  const imageSource = convertFileSrc(book.thumbnail_path);
+
+  console.log(imageSource, book.thumbnail_path);
+
   return (
     <>
-      <div className="bg-base-100 shadow-sm w-60 card">
-        <figure>
-          <img
-            src="https:img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-            alt="Shoes"
-          />
-        </figure>
+      <div className="bg-base-100 shadow-lg w-72 card">
         <div className="card-body">
-          <h2 className="card-title">Card Title</h2>
-          <p>
-            A card component has a figure, a body part, and inside body there
-            are title and actions parts
-          </p>
-          <div className="justify-end card-actions">
-            <button className="btn btn-primary">Buy Now</button>
+          <img
+            src={imageSource}
+            alt="Book Cover"
+            className="rounded-2xl shadow-2xl h-80"
+          />
+
+          <h2 className="card-title truncate">{book.name}</h2>
+          <div className="px-2 flex items-center gap-2">
+            <progress
+              className="progress progress-primary"
+              value={book.progress}
+              max={100}
+            />
+            <div className="flex items-center gap-2">
+              <span>{(book.page / book.page_count) * 100}%</span>
+            </div>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center justify-center gap-2">
+              <span className="font-semibold">
+                {book.page}/{book.page_count}
+              </span>
+              <FaBookOpen />
+            </div>
+            <button className="btn btn-primary">Read</button>
           </div>
         </div>
       </div>

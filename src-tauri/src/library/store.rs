@@ -198,41 +198,44 @@ pub async fn set_theme(theme: String) -> Result<(), tauri::Error> {
 
 #[tauri::command]
 pub async fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
-    let mut store = Store::instance().lock().unwrap();
-    let metadata = std::fs::metadata(&book_path).unwrap();
-    let file_stem = book_path.file_stem().unwrap();
+    std::thread::spawn(move || {
+        let mut store = Store::instance().lock().unwrap();
+        let metadata = std::fs::metadata(&book_path).unwrap();
+        let file_stem = book_path.file_stem().unwrap();
 
-    let book_id = uuid::Uuid::new_v4().to_string();
+        let book_id = uuid::Uuid::new_v4().to_string();
 
-    let mut book = Book {
-        id: book_id.clone(),
-        name: String::from(file_stem.to_str().unwrap()),
-        description: String::new(),
-        page: 0,
-        page_count: 0,
-        progress: 0f32,
-        score: None,
-        is_favourte: false,
-        is_open: false,
-        time_spent: Duration::new(0, 0),
-        completed_at: None,
-        last_time_opened: None,
-        text_highlights: Vec::new(),
-        file_size: metadata.file_size(),
-        book_path: PathBuf::new(),
-        thumbnail_path: PathBuf::new(),
-    };
+        let mut book = Book {
+            id: book_id.clone(),
+            name: String::from(file_stem.to_str().unwrap()),
+            description: String::new(),
+            page: 0,
+            page_count: 0,
+            progress: 0f32,
+            score: None,
+            is_favourte: false,
+            is_open: false,
+            time_spent: Duration::new(0, 0),
+            completed_at: None,
+            last_time_opened: None,
+            text_highlights: Vec::new(),
+            file_size: metadata.file_size(),
+            book_path: PathBuf::new(),
+            thumbnail_path: PathBuf::new(),
+        };
 
-    let copied_book_path = book.init_copy(&book_path).unwrap();
-    let book_metadata = BookMetadataFactory::metadata_from(&copied_book_path, &book_id).unwrap();
+        let copied_book_path = book.init_copy(&book_path).unwrap();
+        let book_metadata =
+            BookMetadataFactory::metadata_from(&copied_book_path, &book_id).unwrap();
 
-    book.book_path = copied_book_path;
-    book.thumbnail_path = book_metadata.thumbnail_path;
-    book.page_count = book_metadata.page_count;
+        book.book_path = copied_book_path;
+        book.thumbnail_path = book_metadata.thumbnail_path;
+        book.page_count = book_metadata.page_count;
 
-    store.add_book(book);
-
-    println!("{:#?}", store);
+        store.add_book(book);
+    })
+    .join()
+    .unwrap();
 
     Ok(())
 }

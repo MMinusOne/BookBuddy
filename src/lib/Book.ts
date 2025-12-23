@@ -13,6 +13,8 @@ interface BookData {
   last_time_opened?: number;
   text_highlights: TextHighlight[];
   file_size: number;
+  book_path: string;
+  thumbnail_path: string;
 }
 
 export class Book implements BookData {
@@ -30,6 +32,8 @@ export class Book implements BookData {
   last_time_opened: number = 0;
   text_highlights: TextHighlight[] = [];
   file_size: number = 0;
+  book_path = "";
+  thumbnail_path = "";
 
   constructor(props: BookData) {
     Object.assign(this, props);
