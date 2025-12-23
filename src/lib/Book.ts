@@ -2,9 +2,8 @@ interface BookData {
   id: string;
   name: string;
   description: string;
-  page: number;
+  current_page: number;
   page_count: number;
-  progress: number;
   score?: number;
   is_favourte: boolean;
   is_open: boolean;
@@ -21,9 +20,8 @@ export class Book implements BookData {
   id: string = "";
   name: string = "";
   description: string = "";
-  page: number = 0;
+  current_page: number = 0;
   page_count: number = 0;
-  progress: number = 0;
   score?: number = 0;
   is_favourte: boolean = false;
   is_open: boolean = false;

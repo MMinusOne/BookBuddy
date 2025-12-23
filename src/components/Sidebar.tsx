@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
   FaBook,
@@ -9,13 +8,13 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { FaFolder } from "react-icons/fa6";
-import usePage, { Page } from "../lib/pageState";
+import usePage, { Page } from "../lib/state/pageState";
 import { loadBookPath } from "../lib/services/loadBookPath";
 
 export default function Sidebar() {
   const { page, setPage } = usePage();
 
-  const handleLoadDirectoryClick = async () => {
+  const handleLoadDirectory = async () => {
     const bookPaths = await open({
       directory: false,
       multiple: true,
@@ -34,6 +33,8 @@ export default function Sidebar() {
     for (const bookPath of bookPaths) {
       await loadBookPath({ bookPath });
     }
+
+    window.location.reload();
   };
 
   const selectedStyle = (p: Page) => {
@@ -53,11 +54,11 @@ export default function Sidebar() {
 
         <div className="flex flex-col m-2 p-2">
           <button
-            onClick={handleLoadDirectoryClick}
+            onClick={handleLoadDirectory}
             className="btn btn-outline btn-primary"
           >
             <FaFolder />
-            Load Directory
+            Load Books
           </button>
         </div>
 

@@ -41,7 +41,7 @@ impl BookMetadataFactory {
 
         let num_pages = match pages_dict.get(b"Count")? {
             Object::Integer(n) => *n as usize,
-            _ => unimplemented!(),
+            _ => 0,
         };
 
         Ok(BookMetadata {

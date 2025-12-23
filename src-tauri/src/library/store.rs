@@ -33,10 +33,20 @@ impl Store {
         &self.theme
     }
     pub fn add_book(&mut self, book: Book) {
+        println!("Added book {:#?}", &book);
         self.books.push(book);
         self.save().unwrap();
     }
-    pub fn delete_books(&mut self) {}
+    pub fn delete_book(&mut self, book_id: &String) {
+        for (book_index, book) in self.books.iter().enumerate() {
+            if book.id == *book_id {
+                self.books.remove(book_index);
+                break;
+            }
+        }
+
+        self.save().unwrap();
+    }
     pub fn get_books(&self) -> Vec<Book> {
         self.books.clone()
     }
@@ -115,9 +125,8 @@ pub struct Book {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub page: u16,
+    pub current_page: u16,
     pub page_count: usize,
-    pub progress: f32,
     pub score: Option<f32>,
     pub is_favourte: bool,
     pub is_open: bool,
@@ -197,7 +206,7 @@ pub async fn set_theme(theme: String) -> Result<(), tauri::Error> {
 }
 
 #[tauri::command]
-pub async fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
+pub fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
     std::thread::spawn(move || {
         let mut store = Store::instance().lock().unwrap();
         let metadata = std::fs::metadata(&book_path).unwrap();
@@ -209,9 +218,8 @@ pub async fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
             id: book_id.clone(),
             name: String::from(file_stem.to_str().unwrap()),
             description: String::new(),
-            page: 0,
+            current_page: 0,
             page_count: 0,
-            progress: 0f32,
             score: None,
             is_favourte: false,
             is_open: false,
@@ -238,6 +246,14 @@ pub async fn load_book_path(book_path: PathBuf) -> Result<(), tauri::Error> {
     .unwrap();
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn delete_book(book_id: String) {
+    let mut store = Store::instance().lock().unwrap();
+    let book = store.get_book(&book_id).unwrap();
+    std::fs::remove_file(&book.book_path).unwrap();
+    store.delete_book(&book_id);
 }
 
 #[tauri::command]

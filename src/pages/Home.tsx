@@ -1,11 +1,24 @@
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
-import { FaBookOpen, FaGauge } from "react-icons/fa6";
+import {
+  FaClock,
+  FaChartLine,
+  FaRunning,
+  FaPen,
+  FaCheck,
+} from "react-icons/fa";
+import {
+  FaBookOpen,
+  FaEllipsis,
+  FaGauge,
+  FaStar,
+  FaTrash,
+} from "react-icons/fa6";
 import { useGetBooks } from "../lib/services/getBooks";
 import { Book } from "../lib/Book";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { deleteBook } from "../lib/services/removeBook";
 
 export default function Home() {
   return (
@@ -129,15 +142,24 @@ function BookList() {
   return (
     <>
       <div className="p-2">
+        <span className="font-semibold text-3xl">Book Collection</span>
         <div
           style={{
-            gridTemplateColumns: "repeat(auto-fit, 18rem)",
+            gridTemplateColumns: "repeat(auto-fit, 12.5rem)",
           }}
-          className="gap-4 grid grid-auto-fit"
+          className="gap-4 grid grid-auto-fit p-2 justify-center"
         >
-          {books.map((book) => (
-            <BookCard book={book} />
-          ))}
+          {books.length != 0 ? (
+            books
+              .sort((a, b) => a.current_page - b.current_page)
+              .map((book) => <BookCard book={book} />)
+          ) : (
+            <div className="w-full h-full">
+              <span className="capitalize font-semibold text-4xl whitespace-nowrap">
+                No Books Yet
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -147,33 +169,33 @@ function BookList() {
 function BookCard({ book }: { book: Book }) {
   const imageSource = convertFileSrc(book.thumbnail_path);
 
-  console.log(imageSource, book.thumbnail_path);
-
   return (
     <>
-      <div className="bg-base-100 shadow-lg w-72 card">
+      <div className="bg-base-100 shadow-lg w-50 card">
         <div className="card-body">
+          <BookMenuButton book={book} />
+
           <img
             src={imageSource}
             alt="Book Cover"
-            className="rounded-2xl shadow-2xl h-80"
+            className="rounded-2xl shadow-2xl h-50"
           />
 
-          <h2 className="card-title truncate">{book.name}</h2>
+          <h3 className="card-title truncate">{book.name}</h3>
           <div className="px-2 flex items-center gap-2">
             <progress
               className="progress progress-primary"
-              value={book.progress}
+              value={(book.current_page / book.page_count) * 100}
               max={100}
             />
             <div className="flex items-center gap-2">
-              <span>{(book.page / book.page_count) * 100}%</span>
+              <span>{(book.current_page / book.page_count) * 100}%</span>
             </div>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center justify-center gap-2">
               <span className="font-semibold">
-                {book.page}/{book.page_count}
+                {book.current_page}/{book.page_count}
               </span>
               <FaBookOpen />
             </div>
@@ -182,5 +204,51 @@ function BookCard({ book }: { book: Book }) {
         </div>
       </div>
     </>
+  );
+}
+
+export function BookMenuButton({ book }: { book: Book }) {
+  const handleDeleteBook = async () => {
+    await deleteBook(book.id);
+    window.location.reload();
+  };
+
+  return (
+    <div className="w-full flex items-center justify-end">
+      <button
+        popoverTarget={`book-options-popover-${book.id}`}
+        className="btn btn-square btn-sm btn-ghost"
+        style={{ anchorName: `--book-options-anchor-${book.id}` }}
+      >
+        <FaEllipsis />
+      </button>
+      <ul
+        className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
+        popover="auto"
+        id={`book-options-popover-${book.id}`}
+        style={{ positionAnchor: `--book-options-anchor-${book.id}` }}
+      >
+        <li>
+          <a>
+            <FaPen /> Rename
+          </a>
+        </li>
+        <li>
+          <a>
+            <FaStar /> Set Favourite
+          </a>
+        </li>
+        <li>
+          <a>
+            <FaCheck /> Mark Completed
+          </a>
+        </li>
+        <li>
+          <a onClick={handleDeleteBook}>
+            <FaTrash /> Delete
+          </a>
+        </li>
+      </ul>
+    </div>
   );
 }

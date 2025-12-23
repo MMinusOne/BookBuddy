@@ -23,6 +23,7 @@ pub fn run() {
             store::get_theme,
             store::set_theme,
             store::load_book_path,
+            store::delete_book,
             store::morph_book,
         ])
         .run(tauri::generate_context!())

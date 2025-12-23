@@ -1,8 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import "./globals.css";
-import { useState } from "react";
 import Home from "./pages/Home";
-import usePage, { Page } from "./lib/pageState";
+import usePage, { Page } from "./lib/state/pageState";
 
 function App() {
   const { page } = usePage();
