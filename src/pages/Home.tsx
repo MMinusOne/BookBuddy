@@ -19,6 +19,7 @@ import { useGetBooks } from "../lib/services/getBooks";
 import { Book } from "../lib/Book";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { deleteBook } from "../lib/services/removeBook";
+import usePage, { Page } from "../lib/state/pageState";
 
 export default function Home() {
   return (
@@ -168,6 +169,7 @@ function BookList() {
 
 function BookCard({ book }: { book: Book }) {
   const imageSource = convertFileSrc(book.thumbnail_path);
+  const { setCurrentBook, setPage } = usePage();
 
   return (
     <>
@@ -199,7 +201,15 @@ function BookCard({ book }: { book: Book }) {
               </span>
               <FaBookOpen />
             </div>
-            <button className="btn btn-primary">Read</button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setCurrentBook(book);
+                setPage(Page.Reader);
+              }}
+            >
+              Read
+            </button>
           </div>
         </div>
       </div>
