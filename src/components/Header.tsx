@@ -1,5 +1,4 @@
-import { FaHome, FaPlus } from "react-icons/fa";
-import { FaGear, FaList } from "react-icons/fa6";
+import { FaHome, FaList, FaPlus } from "react-icons/fa";
 import usePage, { Page } from "../lib/state/pageState";
 
 export default function Header() {
@@ -25,11 +24,7 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="ml-auto">
-          <button className="btn btn-square">
-            <FaGear />
-          </button>
-        </div>
+        <div className="ml-auto"></div>
       </div>
     </>
   );

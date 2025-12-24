@@ -16,6 +16,8 @@ interface PageState {
   setPage: (page: Page) => void;
   currentBook?: Book;
   setCurrentBook: (book: Book) => void;
+  isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
 }
 
 const usePage = create<PageState>((set) => ({
@@ -23,6 +25,8 @@ const usePage = create<PageState>((set) => ({
   setPage: (page) => set((prev) => ({ ...prev, page })),
   currentBook: undefined,
   setCurrentBook: (currentBook) => set((prev) => ({ ...prev, currentBook })),
+  isLoading: false,
+  setIsLoading: (isLoading) => set((prev) => ({ ...prev, isLoading })),
 }));
 
 export default usePage;
