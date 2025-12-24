@@ -17,21 +17,21 @@ export default function HomeStats() {
   const primaryColor = getDaisyUiColor("--color-primary");
 
   return (
-    <div className="bg-base-300 p-6 w-full h-full rounded-2xl">
+    <div className="bg-base-300 p-6 rounded-2xl w-full h-full">
       <div className="flex lg:flex-row flex-col gap-6 h-full">
-        <div className="w-[40%] flex flex-col justify-center">
-          <span className="font-bold text-2xl m-4">Activity Overview</span>
+        <div className="flex flex-col justify-center w-[40%]">
+          <span className="m-4 font-bold text-2xl">Activity Overview</span>
           <div className="flex flex-row">
-            <div className="stat shadow-lg">
-              <div className="stat-figure text-primary">
+            <div className="shadow-lg stat">
+              <div className="text-primary stat-figure">
                 <FaClock />
               </div>
               <div className="stat-title">time spent reading</div>
               <div className="stat-value">10h</div>
               <div className="stat-desc">this week</div>
             </div>
-            <div className="stat shadow-lg">
-              <div className="stat-figure text-primary">
+            <div className="shadow-lg stat">
+              <div className="text-primary stat-figure">
                 <FaBookOpen />
               </div>
               <div className="stat-title">books read</div>
@@ -40,16 +40,16 @@ export default function HomeStats() {
             </div>
           </div>
           <div className="flex flex-row">
-            <div className="stat shadow-lg">
-              <div className="stat-figure text-primary">
+            <div className="shadow-lg stat">
+              <div className="text-primary stat-figure">
                 <FaRunning />
               </div>
               <div className="stat-title">most active day</div>
               <div className="stat-value">10h</div>
               <div className="stat-desc">thursday 12/12/2025</div>
             </div>
-            <div className="stat shadow-lg">
-              <div className="stat-figure text-primary">
+            <div className="shadow-lg stat">
+              <div className="text-primary stat-figure">
                 <FaGauge />
               </div>
               <div className="stat-title">average daily</div>
