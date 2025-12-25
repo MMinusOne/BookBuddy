@@ -270,5 +270,6 @@ pub async fn morph_book(new_book: Book) -> Result<(), tauri::Error> {
     let mut store = Store::instance().lock().unwrap();
     let old_book = store.get_book_mut(&new_book.id).unwrap();
     *old_book = new_book;
+    store.save().unwrap();
     Ok(())
 }

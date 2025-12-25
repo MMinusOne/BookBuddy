@@ -67,7 +67,7 @@ function BookList() {
         >
           {books.length != 0 ? (
             books
-              .sort((a, b) => b.current_page - a.current_page)
+              .sort((a, b) => b.progress - a.progress)
               .map((book) => <BookCard book={book} />)
           ) : (
             <div className="flex flex-col justify-center items-center gap-2 bg-base-200/40 p-10 border border-base-300/70 border-dashed rounded-2xl text-center">

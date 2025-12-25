@@ -8,6 +8,8 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Book } from "../lib/Book";
 import { morphBook } from "../lib/services/morphBook";
+import { FaArrowDown, FaArrowUp, FaRobot } from "react-icons/fa";
+import { FaMagnifyingGlassMinus, FaMagnifyingGlassPlus } from "react-icons/fa6";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -172,7 +174,39 @@ export default function ReaderView() {
               </Document>
             </div>
           </div>
-          <div className="h-full w-12.5 bg-base-300"></div>
+          <div className="h-full w-12.5 bg-base-300 flex p-1 flex-col items-center justify-between">
+            <div className="my-2 flex items-center flex-col">
+              <button className="w-full btn aspect-square">
+                <FaRobot />
+              </button>
+            </div>
+
+            <div className="my-2 flex items-center flex-col">
+              <span className="flex items-center justify-center aspect-square w-full text-sm">
+                {readerState.bookData.current_page}
+              </span>
+
+              <span className="flex items-center justify-center aspect-square w-full text-sm">
+                {readerState.bookData.page_count}
+              </span>
+
+              <button className="btn aspect-square">
+                <FaArrowUp />
+              </button>
+
+              <span className="flex items-center justify-center aspect-square w-full text-sm">
+                {readerState.zoom}%
+              </span>
+
+              <button className="btn aspect-square">
+                <FaMagnifyingGlassPlus />
+              </button>
+
+              <button className=" btn btn-ghost aspect-square">
+                <FaMagnifyingGlassMinus />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </>
