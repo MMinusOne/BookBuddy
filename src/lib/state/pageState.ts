@@ -14,8 +14,6 @@ export enum Page {
 interface PageState {
   page: Page;
   setPage: (page: Page) => void;
-  currentBook?: Book;
-  setCurrentBook: (book: Book) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -23,8 +21,6 @@ interface PageState {
 const usePage = create<PageState>((set) => ({
   page: Page.Home,
   setPage: (page) => set((prev) => ({ ...prev, page })),
-  currentBook: undefined,
-  setCurrentBook: (currentBook) => set((prev) => ({ ...prev, currentBook })),
   isLoading: false,
   setIsLoading: (isLoading) => set((prev) => ({ ...prev, isLoading })),
 }));

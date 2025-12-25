@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { FaClock, FaChartLine, FaRunning } from "react-icons/fa";
-import getDaisyUiColor from "../utils/daisyui";
+import getDaisyUiColor from "../../utils/daisyui";
 import { FaBookOpen, FaGauge } from "react-icons/fa6";
 
 const weeklyData = [

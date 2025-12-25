@@ -2,9 +2,11 @@ import { FaHome, FaList, FaPlus } from "react-icons/fa";
 import usePage, { Page } from "../lib/state/pageState";
 import { useGetBooks } from "../lib/services/getBooks";
 import { FaX } from "react-icons/fa6";
+import { useReaderState } from "../lib/state/readerState";
 
 export default function Header() {
-  const { setPage, setCurrentBook } = usePage();
+  const { setPage } = usePage();
+  const { setBookData } = useReaderState();
   const books = useGetBooks();
 
   const handleHome = () => {
@@ -34,7 +36,7 @@ export default function Header() {
               return (
                 <button
                   onClick={() => {
-                    setCurrentBook(book);
+                    setBookData(book);
                     setPage(Page.Reader);
                   }}
                   className="btn w-80"

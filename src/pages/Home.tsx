@@ -1,5 +1,5 @@
 import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/home/Sidebar";
 import {
   FaBookOpen,
   FaEllipsis,
@@ -13,7 +13,8 @@ import { Book } from "../lib/Book";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { deleteBook } from "../lib/services/removeBook";
 import usePage, { Page } from "../lib/state/pageState";
-import HomeStats from "../components/HomeStats";
+import HomeStats from "../components/home/HomeStats";
+import { useReaderState } from "../lib/state/readerState";
 
 export default function Home() {
   return (
@@ -68,7 +69,7 @@ function BookList() {
           {books.length != 0 ? (
             books
               .sort((a, b) => b.progress - a.progress)
-              .map((book) => <BookCard book={book} />)
+              .map((book) => <BookCard key={book.id} book={book} />)
           ) : (
             <div className="flex flex-col justify-center items-center gap-2 bg-base-200/40 p-10 border border-base-300/70 border-dashed rounded-2xl text-center">
               <div className="flex justify-center items-center bg-base-100 shadow-sm rounded-full w-12 h-12">
@@ -89,7 +90,8 @@ function BookList() {
 
 function BookCard({ book }: { book: Book }) {
   const imageSource = convertFileSrc(book.thumbnail_path);
-  const { setCurrentBook, setPage } = usePage();
+  const { setPage } = usePage();
+  const { setBookData } = useReaderState();
 
   return (
     <>
@@ -124,7 +126,7 @@ function BookCard({ book }: { book: Book }) {
             <button
               className="btn btn-primary"
               onClick={() => {
-                setCurrentBook(book);
+                setBookData(book);
                 setPage(Page.Reader);
               }}
             >

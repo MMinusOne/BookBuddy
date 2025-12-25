@@ -8,8 +8,8 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { FaFolder } from "react-icons/fa6";
-import usePage, { Page } from "../lib/state/pageState";
-import { loadBookPaths } from "../lib/services/loadBookPaths";
+import usePage, { Page } from "../../lib/state/pageState";
+import { loadBookPaths } from "../../lib/services/loadBookPaths";
 
 export default function Sidebar() {
   const { page, setPage } = usePage();
