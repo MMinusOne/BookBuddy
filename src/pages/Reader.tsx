@@ -5,7 +5,9 @@ import usePage from "../lib/state/pageState";
 
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Book } from "../lib/Book";
+import { morphBook } from "../lib/services/morphBook";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -13,24 +15,36 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 export default function ReaderView() {
-  const { currentBook, setIsLoading } = usePage();
-  const [visiblePages, setVisiblePages] = useState(new Set([1]));
-  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const { currentBook, setIsLoading, isLoading } = usePage();
 
   if (!currentBook) {
     return <></>;
   }
 
-  const [readerState, setReaderState] = useState({
+  const [visiblePages, setVisiblePages] = useState(
+    new Set([currentBook.current_page + 1])
+  );
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const documentContainerRef = useRef<HTMLDivElement>(null);
+  const [readerState, setReaderState] = useState<{
+    zoom: number;
+    startTime: Date;
+    selectedText: string;
+    bookData: Book;
+  }>({
     zoom: 100,
-    page: currentBook.current_page,
     startTime: new Date(),
-    progress: (currentBook.current_page / currentBook.page_count) * 100,
-    bookmarks: [],
     selectedText: "",
+    bookData: currentBook,
   });
-
   const pdfRef = useRef<HTMLDivElement>(null);
+
+  const setPageRef = useCallback(
+    (pageIndex: number) => (el: HTMLDivElement | null) => {
+      pageRefs.current[pageIndex] = el;
+    },
+    []
+  );
 
   useEffect(() => {
     if (!pdfRef.current) return;
@@ -44,6 +58,9 @@ export default function ReaderView() {
   }, [pdfRef]);
 
   useEffect(() => {
+    if (isLoading) return;
+    if (pageRefs.current.length === 0) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -55,6 +72,11 @@ export default function ReaderView() {
             const newSet = new Set(prev);
             if (entry.isIntersecting) {
               [0, -1, +1].forEach((offset) => newSet.add(pageNumber + offset));
+              setReaderState((prev) => {
+                const newBookData = new Book(prev.bookData);
+                newBookData.setCurrentPage(pageNumber);
+                return { ...prev, bookData: newBookData };
+              });
             } else {
               newSet.delete(pageNumber);
             }
@@ -66,16 +88,40 @@ export default function ReaderView() {
       { root: null, rootMargin: "500px", threshold: 0 }
     );
 
-    for (const pageRef of pageRefs.current) {
+    pageRefs.current.forEach((pageRef) => {
       if (pageRef) observer.observe(pageRef);
+    });
+    const currentPage = pageRefs.current[currentBook.current_page];
+
+    if (documentContainerRef.current && currentPage) {
+      const pageRect = currentPage.getBoundingClientRect();
+
+      const containerRect =
+        documentContainerRef.current.getBoundingClientRect();
+
+      const scrollTop =
+        pageRect.top -
+        containerRect.top +
+        documentContainerRef.current.scrollTop;
+
+      documentContainerRef.current.scrollTo({
+        behavior: "instant",
+        top: scrollTop,
+      });
     }
 
     return () => observer.disconnect();
-  }, [currentBook]);
+  }, [isLoading]);
 
   useEffect(() => {
     setIsLoading(true);
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      morphBook({ newBook: readerState.bookData });
+    })();
+  }, [readerState.bookData]);
 
   return (
     <>
@@ -83,7 +129,10 @@ export default function ReaderView() {
         <Header />
 
         <div className="flex w-full h-full overflow-hidden">
-          <div className="w-full h-full flex flex-col items-center justify-start overflow-hidden overflow-y-scroll">
+          <div
+            ref={documentContainerRef}
+            className="w-full h-full flex flex-col items-center justify-start overflow-hidden overflow-y-scroll"
+          >
             <div ref={pdfRef} style={{ userSelect: "text" }}>
               <Document
                 className="w-fit flex flex-col gap-2"
@@ -98,14 +147,10 @@ export default function ReaderView() {
                     const pageNumber = pageIndex + 1;
                     const shouldRender = visiblePages.has(pageNumber);
 
-                    if (!pageRefs.current) return;
-
                     return (
                       <div
                         key={pageIndex}
-                        ref={(el) => {
-                          pageRefs.current[pageIndex] = el;
-                        }}
+                        ref={setPageRef(pageIndex)}
                         data-page={pageNumber}
                         style={{ minHeight: shouldRender ? "auto" : "1100px" }}
                       >

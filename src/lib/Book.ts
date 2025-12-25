@@ -1,4 +1,4 @@
-interface BookData {
+export interface BookData {
   id: string;
   name: string;
   description: string;
@@ -14,6 +14,7 @@ interface BookData {
   file_size: number;
   book_path: string;
   thumbnail_path: string;
+  progress: number;
 }
 
 export class Book implements BookData {
@@ -32,9 +33,22 @@ export class Book implements BookData {
   file_size: number = 0;
   book_path = "";
   thumbnail_path = "";
+  progress: number = 0;
 
   constructor(props: BookData) {
     Object.assign(this, props);
+    this.setCurrentPage(props.current_page);
+  }
+
+  setCurrentPage(page_number: number) {
+    this.current_page = page_number;
+    this.adjustProgress();
+  }
+
+  adjustProgress() {
+    this.progress = Number(
+      (100 * (this.current_page / this.page_count)).toFixed(1)
+    );
   }
 }
 

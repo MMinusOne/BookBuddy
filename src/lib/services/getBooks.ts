@@ -1,9 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Book } from "../Book";
+import { Book, BookData } from "../Book";
 import { useEffect, useState } from "react";
 
 export async function getBooks(): Promise<Book[]> {
-  const books = await invoke<Book[]>("get_books");
+  const bookDatas = await invoke<BookData[]>("get_books");
+  const books = [];
+
+  for (const bookData of bookDatas) {
+    books.push(new Book(bookData));
+  }
   return books;
 }
 

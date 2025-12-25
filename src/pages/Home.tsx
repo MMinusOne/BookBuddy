@@ -24,7 +24,7 @@ export default function Home() {
           <Sidebar />
           <div className="flex flex-col flex-1 gap-4 p-4 w-full overflow-hidden overflow-y-auto">
             <section className="shrink-0">
-              <div className="h-[260px] lg:h-[320px]">
+              <div className="h-65 lg:h-80">
                 <HomeStats />
               </div>
             </section>
@@ -67,7 +67,7 @@ function BookList() {
         >
           {books.length != 0 ? (
             books
-              .sort((a, b) => a.current_page - b.current_page)
+              .sort((a, b) => b.current_page - a.current_page)
               .map((book) => <BookCard book={book} />)
           ) : (
             <div className="flex flex-col justify-center items-center gap-2 bg-base-200/40 p-10 border border-base-300/70 border-dashed rounded-2xl text-center">
@@ -107,11 +107,11 @@ function BookCard({ book }: { book: Book }) {
           <div className="flex items-center gap-2 px-2">
             <progress
               className="progress progress-primary"
-              value={(book.current_page / book.page_count) * 100}
+              value={book.progress}
               max={100}
             />
             <div className="flex items-center gap-2">
-              <span>{(book.current_page / book.page_count) * 100}%</span>
+              <span>{book.progress}%</span>
             </div>
           </div>
           <div className="flex justify-between items-center">
