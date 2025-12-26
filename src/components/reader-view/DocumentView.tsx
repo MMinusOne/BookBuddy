@@ -20,7 +20,6 @@ export default function DocumentView({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [numPagesLoaded, setNumPagesLoaded] = useState(0);
   const [initiallyScrolled, setInitiallyScrolled] = useState(false);
-  const renderedPagesRef = useRef<Set<number>>(new Set());
 
   const allPagesLoaded = useMemo(() => {
     if (!readerState.bookData) return false;
@@ -37,13 +36,6 @@ export default function DocumentView({
     },
     []
   );
-
-  // Reset page tracking when book changes
-  useEffect(() => {
-    setNumPagesLoaded(0);
-    renderedPagesRef.current.clear();
-    setInitiallyScrolled(false);
-  }, [readerState.bookData?.id]);
 
   useEffect(() => {
     readerState.setLoading(!allPagesLoaded);
@@ -119,11 +111,7 @@ export default function DocumentView({
                 pageIndex={pageIndex}
                 data-page={pageIndex + 1}
                 onRenderSuccess={() => {
-                  // Only count each page once, even if it re-renders
-                  if (!renderedPagesRef.current.has(pageIndex)) {
-                    renderedPagesRef.current.add(pageIndex);
-                    setNumPagesLoaded((prev) => prev + 1);
-                  }
+                  setNumPagesLoaded((prev) => prev + 1);
                 }}
               />
             </div>

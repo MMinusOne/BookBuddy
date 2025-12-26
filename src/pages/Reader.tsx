@@ -61,6 +61,7 @@ export default function ReaderView() {
             ref={documentContainerRef}
             style={{
               overflowY: "scroll",
+              // overflowY: !readerState.loading ? "scroll" : "hidden",
               // display: readerState.loading ? "hidden" : undefined,
             }}
             id="document-container"
