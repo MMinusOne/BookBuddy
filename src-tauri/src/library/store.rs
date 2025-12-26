@@ -1,15 +1,17 @@
 use crate::library::bookmetadata_factory::BookMetadataFactory;
 use crate::library::date::Date;
 use crate::{library::date, APP_INSTANCE};
+use anyhow::anyhow;
 use chrono::prelude::*;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::os::windows::fs::MetadataExt;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::{Duration, SystemTime};
-use std::{error::Error, sync::Mutex};
 use tauri::Manager;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,7 +29,6 @@ impl Store {
 
     pub fn set_theme(&mut self, theme: String) {
         self.theme = theme;
-        self.save().unwrap();
     }
     pub fn get_theme(&self) -> &String {
         &self.theme
@@ -35,7 +36,6 @@ impl Store {
     pub fn add_book(&mut self, book: Book) {
         println!("Added book {:#?}", &book);
         self.books.push(book);
-        self.save().unwrap();
     }
     pub fn delete_book(&mut self, book_id: &String) {
         for (book_index, book) in self.books.iter().enumerate() {
@@ -44,8 +44,6 @@ impl Store {
                 break;
             }
         }
-
-        self.save().unwrap();
     }
     pub fn get_books(&self) -> Vec<Book> {
         self.books.clone()
@@ -128,7 +126,7 @@ pub struct Book {
     pub current_page: u16,
     pub page_count: usize,
     pub score: Option<f32>,
-    pub is_favourte: bool,
+    pub is_favorite: bool,
     pub is_open: bool,
     pub time_spent: Duration,
     pub completed_at: Option<SystemTime>,
@@ -200,9 +198,15 @@ pub async fn get_theme() -> Result<String, tauri::Error> {
 
 #[tauri::command]
 pub async fn set_theme(theme: String) -> Result<(), tauri::Error> {
-    let mut store = Store::instance().lock().unwrap();
+    let mut store = Store::instance()
+        .lock()
+        .map_err(|e| tauri::Error::from(anyhow!("Lock error: {}", e)))?;
+
     store.set_theme(theme);
-    Ok(())
+
+    store
+        .save()
+        .map_err(|e| tauri::Error::from(anyhow!("Save error: {}", e)))
 }
 
 #[tauri::command]
@@ -224,7 +228,7 @@ pub fn load_book_paths(book_paths: Vec<PathBuf>) -> Result<(), tauri::Error> {
                 current_page: 0,
                 page_count: 0,
                 score: None,
-                is_favourte: false,
+                is_favorite: false,
                 is_open: false,
                 time_spent: Duration::new(0, 0),
                 completed_at: None,
@@ -258,16 +262,23 @@ pub fn load_book_paths(book_paths: Vec<PathBuf>) -> Result<(), tauri::Error> {
 }
 
 #[tauri::command]
-pub fn delete_book(book_id: String) {
-    let mut store = Store::instance().lock().unwrap();
+pub fn delete_book(book_id: String) -> Result<(), tauri::Error> {
+    let mut store = Store::instance()
+        .lock()
+        .map_err(|e| tauri::Error::from(anyhow!("Lock error: {}", e)))?;
     let book = store.get_book(&book_id).unwrap();
     std::fs::remove_file(&book.book_path).unwrap();
     store.delete_book(&book_id);
+    store
+        .save()
+        .map_err(|e| tauri::Error::from(anyhow!("Save error: {}", e)))
 }
 
 #[tauri::command]
 pub async fn morph_book(new_book: Book) -> Result<(), tauri::Error> {
-    let mut store = Store::instance().lock().unwrap();
+    let mut store = Store::instance()
+        .lock()
+        .map_err(|e| tauri::Error::from(anyhow!("Lock error: {}", e)))?;
     let old_book = store.get_book_mut(&new_book.id).unwrap();
     *old_book = new_book;
     store.save().unwrap();
