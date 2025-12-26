@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Book } from "../Book";
+import { BookData } from "../Book";
 
-export async function morphBook({ newBook }: { newBook: Book }) {
+export async function morphBook({ newBook }: { newBook: BookData }) {
   await invoke("morph_book", { newBook });
 }

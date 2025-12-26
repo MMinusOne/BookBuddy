@@ -8,6 +8,7 @@ import { pdfjs } from "react-pdf";
 import { useEffect, useRef } from "react";
 import usePage from "../lib/state/pageState";
 import { morphBook } from "../lib/services/morphBook";
+import { Book, BookData } from "../lib/Book";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -21,26 +22,29 @@ export default function ReaderView() {
 
   useEffect(() => {
     (async () => {
-      if (books.length == 0) return;
-      console.log(books);
+      if (books.length === 0 || !readerState.bookData) return;
 
-      const newBooks = [];
-      let newBook;
+      const currentBook = books.find((b) => b.id === readerState.bookData!.id);
+      if (currentBook?.is_open) return;
 
-      for (const b of books) {
-        if (b.id == readerState.bookData!.id) {
-          b.is_open = true;
-          newBooks.push(b);
-          newBook = b;
-        } else {
-          newBooks.push(b);
+      const newBooks: BookData[] = books.map((b) => {
+        if (b.id === readerState.bookData!.id) {
+          return { ...b, is_open: true };
         }
+        return b;
+      });
+
+      const newBook: BookData | undefined = newBooks.find(
+        (b) => b.id === readerState.bookData!.id
+      );
+
+      if (newBook) {
+        setBooks(newBooks);
+        readerState.setBookData(newBook);
+        await morphBook({ newBook });
       }
-      setBooks(books);
-      if (newBook) readerState.setBookData(newBook);
-      await morphBook({ newBook: newBook! });
     })();
-  }, [books]);
+  }, [books, readerState.bookData?.id, setBooks, readerState.setBookData]);
 
   return (
     <>
@@ -52,6 +56,7 @@ export default function ReaderView() {
             ref={documentContainerRef}
             style={{
               overflowY: !readerState.loading ? "scroll" : "hidden",
+              display: readerState.loading ? "hidden" : undefined,
             }}
             id="document-container"
             className="flex flex-col justify-start items-center w-full h-full overflow-hidden"

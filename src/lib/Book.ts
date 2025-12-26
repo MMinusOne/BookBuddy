@@ -5,7 +5,7 @@ export interface BookData {
   current_page: number;
   page_count: number;
   score?: number;
-  is_favourte: boolean;
+  is_favorite: boolean;
   is_open: boolean;
   time_spent: number;
   completed_at?: number;
@@ -24,7 +24,7 @@ export class Book implements BookData {
   current_page: number = 0;
   page_count: number = 0;
   score?: number = 0;
-  is_favourte: boolean = false;
+  is_favorite: boolean = false;
   is_open: boolean = false;
   time_spent: number = 0;
   completed_at?: number;

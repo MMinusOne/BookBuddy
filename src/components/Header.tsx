@@ -37,11 +37,8 @@ export default function Header() {
                 <div className="flex items-center justify-center w-80 bg-base-200 p-1 rounded-lg my-2">
                   <button
                     onClick={async () => {
-                      book!.is_open = false;
-                      readerState.setBookData(book);
-                      console.log(readerState.bookData);
+                      readerState.setBookIsOpen(false);
                       setPage(Page.Home);
-                      await morphBook({ newBook: book! });
                     }}
                     className="btn btn-sm btn-ghost"
                   >
@@ -49,8 +46,7 @@ export default function Header() {
                   </button>
                   <button
                     onClick={() => {
-                      readerState.bookData!.is_open = true;
-                      readerState.setBookData(book);
+                      readerState.setBookIsOpen(true);
                       setPage(Page.Reader);
                     }}
                     className="btn btn-ghost"

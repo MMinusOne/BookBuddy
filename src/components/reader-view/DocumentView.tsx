@@ -22,7 +22,7 @@ export default function DocumentView({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [numPagesLoaded, setNumPagesLoaded] = useState(0);
   const [initiallyScrolled, setInitiallyScrolled] = useState(false);
-  
+
   const allPagesLoaded = useMemo(() => {
     if (!readerState.bookData) return false;
 
@@ -44,9 +44,7 @@ export default function DocumentView({
   }, [allPagesLoaded]);
 
   usePageObserver(async (pageNumber) => {
-    readerState.bookData!.current_page! = pageNumber;
-    readerState.setBookData(readerState.bookData!);
-    await morphBook({ newBook: readerState.bookData! });
+    readerState.setBookCurrentPage(pageNumber);
   }, pageRefs);
 
   useEffect(() => {

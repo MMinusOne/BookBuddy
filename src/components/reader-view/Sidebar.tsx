@@ -1,8 +1,6 @@
-import { FaArrowDown, FaArrowUp, FaRobot } from "react-icons/fa";
+import { FaRobot } from "react-icons/fa";
 import { useReaderState } from "../../lib/state/readerState";
 import { FaMagnifyingGlassMinus, FaMagnifyingGlassPlus } from "react-icons/fa6";
-import { morphBook } from "../../lib/services/morphBook";
-
 export default function Sidebar() {
   const readerState = useReaderState();
 
