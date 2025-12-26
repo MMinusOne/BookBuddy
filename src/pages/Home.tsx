@@ -15,6 +15,7 @@ import { deleteBook } from "../lib/services/removeBook";
 import usePage, { Page } from "../lib/state/pageState";
 import HomeStats from "../components/home/HomeStats";
 import { useReaderState } from "../lib/state/readerState";
+import { useEffect } from "react";
 
 export default function Home() {
   return (
@@ -42,6 +43,11 @@ export default function Home() {
 
 function BookList() {
   const books = useGetBooks();
+  const { setBooks } = usePage();
+
+  useEffect(() => {
+    setBooks(books);
+  }, [books]);
 
   return (
     <>

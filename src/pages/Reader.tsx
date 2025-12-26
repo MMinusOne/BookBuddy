@@ -5,7 +5,9 @@ import { useReaderState } from "../lib/state/readerState";
 import DocumentView from "../components/reader-view/DocumentView";
 import Sidebar from "../components/reader-view/Sidebar";
 import { pdfjs } from "react-pdf";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import usePage from "../lib/state/pageState";
+import { morphBook } from "../lib/services/morphBook";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -14,8 +16,31 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 export default function ReaderView() {
   const documentContainerRef = useRef<HTMLDivElement>(null);
+  const { books, setBooks } = usePage();
+  const readerState = useReaderState();
 
-  const { loading } = useReaderState();
+  useEffect(() => {
+    (async () => {
+      if (books.length == 0) return;
+      console.log(books);
+
+      const newBooks = [];
+      let newBook;
+
+      for (const b of books) {
+        if (b.id == readerState.bookData!.id) {
+          b.is_open = true;
+          newBooks.push(b);
+          newBook = b;
+        } else {
+          newBooks.push(b);
+        }
+      }
+      setBooks(books);
+      if (newBook) readerState.setBookData(newBook);
+      await morphBook({ newBook: newBook! });
+    })();
+  }, [books]);
 
   return (
     <>
@@ -26,8 +51,8 @@ export default function ReaderView() {
           <div
             ref={documentContainerRef}
             style={{
-              overflowY: !loading ? "scroll" : "hidden",
-            }} 
+              overflowY: !readerState.loading ? "scroll" : "hidden",
+            }}
             id="document-container"
             className="flex flex-col justify-start items-center w-full h-full overflow-hidden"
           >

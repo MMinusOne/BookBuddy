@@ -1,13 +1,13 @@
 import { FaHome, FaList, FaPlus } from "react-icons/fa";
 import usePage, { Page } from "../lib/state/pageState";
-import { useGetBooks } from "../lib/services/getBooks";
 import { FaX } from "react-icons/fa6";
 import { useReaderState } from "../lib/state/readerState";
+import { morphBook } from "../lib/services/morphBook";
 
 export default function Header() {
   const { setPage } = usePage();
-  const { setBookData } = useReaderState();
-  const books = useGetBooks();
+  const readerState = useReaderState();
+  const { books } = usePage();
 
   const handleHome = () => {
     setPage(Page.Home);
@@ -34,16 +34,30 @@ export default function Header() {
             .filter((b) => b.is_open)
             .map((book) => {
               return (
-                <button
-                  onClick={() => {
-                    setBookData(book);
-                    setPage(Page.Reader);
-                  }}
-                  className="btn w-80"
-                >
-                  <FaX width={40} height={40} />
-                  <span className="truncate w-70">{book.name}</span>
-                </button>
+                <div className="flex items-center justify-center w-80 bg-base-200 p-1 rounded-lg my-2">
+                  <button
+                    onClick={async () => {
+                      book!.is_open = false;
+                      readerState.setBookData(book);
+                      console.log(readerState.bookData);
+                      setPage(Page.Home);
+                      await morphBook({ newBook: book! });
+                    }}
+                    className="btn btn-sm btn-ghost"
+                  >
+                    <FaX />
+                  </button>
+                  <button
+                    onClick={() => {
+                      readerState.bookData!.is_open = true;
+                      readerState.setBookData(book);
+                      setPage(Page.Reader);
+                    }}
+                    className="btn btn-ghost"
+                  >
+                    <span className="w-60 truncate">{book.name}</span>
+                  </button>
+                </div>
               );
             })}
         </div>

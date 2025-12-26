@@ -10,8 +10,8 @@ import {
   useState,
 } from "react";
 import usePageObserver from "../hooks/usePageObserver";
-import { Book } from "../../lib/Book";
 import { morphBook } from "../../lib/services/morphBook";
+import usePage from "../../lib/state/pageState";
 
 export default function DocumentView({
   documentContainerRef,
@@ -22,7 +22,7 @@ export default function DocumentView({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [numPagesLoaded, setNumPagesLoaded] = useState(0);
   const [initiallyScrolled, setInitiallyScrolled] = useState(false);
-
+  
   const allPagesLoaded = useMemo(() => {
     if (!readerState.bookData) return false;
 
@@ -50,7 +50,7 @@ export default function DocumentView({
   }, pageRefs);
 
   useEffect(() => {
-    if (!initiallyScrolled) return;
+    if (initiallyScrolled) return;
     console.log(readerState.loading, documentContainerRef);
     if (readerState.loading) return;
     if (!documentContainerRef) return;

@@ -16,6 +16,8 @@ interface PageState {
   setPage: (page: Page) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
+  books: Book[];
+  setBooks: (books: Book[]) => void;
 }
 
 const usePage = create<PageState>((set) => ({
@@ -23,6 +25,8 @@ const usePage = create<PageState>((set) => ({
   setPage: (page) => set((prev) => ({ ...prev, page })),
   isLoading: false,
   setIsLoading: (isLoading) => set((prev) => ({ ...prev, isLoading })),
+  books: [],
+  setBooks: (books: Book[]) => set((prev) => ({ ...prev, books })),
 }));
 
 export default usePage;
