@@ -28,19 +28,21 @@ export const useReaderState = create<ReaderState>((set) => ({
   setBookData: (bookData) =>
     set((prev) => {
       (async () => {
+        console.log("setBooKData");
         await morphBook({ newBook: bookData });
       })();
       return { ...prev, bookData };
     }),
   setBookCurrentPage: (pageNumber: number) =>
     set((prev) => {
-      if (prev.bookData) {
+      if (prev.bookData && prev.bookData.current_page !== pageNumber) {
         const updatedBookData = {
           ...prev.bookData,
           current_page: pageNumber,
         };
 
         (async () => {
+          console.log("setBookCurrentPage");
           await morphBook({ newBook: updatedBookData });
         })();
 
@@ -57,6 +59,7 @@ export const useReaderState = create<ReaderState>((set) => ({
         };
 
         (async () => {
+          console.log("setBookIsOpen");
           await morphBook({ newBook: updatedBookData });
         })();
 

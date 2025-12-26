@@ -21,6 +21,10 @@ export default function ReaderView() {
   const readerState = useReaderState();
 
   useEffect(() => {
+    console.log("Finished loading", readerState.loading);
+  }, [readerState.loading]);
+
+  useEffect(() => {
     (async () => {
       if (books.length === 0 || !readerState.bookData) return;
 
@@ -41,6 +45,7 @@ export default function ReaderView() {
       if (newBook) {
         setBooks(newBooks);
         readerState.setBookData(newBook);
+        console.log("useEffect");
         await morphBook({ newBook });
       }
     })();
@@ -55,8 +60,8 @@ export default function ReaderView() {
           <div
             ref={documentContainerRef}
             style={{
-              overflowY: !readerState.loading ? "scroll" : "hidden",
-              display: readerState.loading ? "hidden" : undefined,
+              overflowY: "scroll",
+              // display: readerState.loading ? "hidden" : undefined,
             }}
             id="document-container"
             className="flex flex-col justify-start items-center w-full h-full overflow-hidden"

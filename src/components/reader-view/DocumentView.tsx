@@ -10,8 +10,6 @@ import {
   useState,
 } from "react";
 import usePageObserver from "../hooks/usePageObserver";
-import { morphBook } from "../../lib/services/morphBook";
-import usePage from "../../lib/state/pageState";
 
 export default function DocumentView({
   documentContainerRef,
@@ -22,6 +20,7 @@ export default function DocumentView({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [numPagesLoaded, setNumPagesLoaded] = useState(0);
   const [initiallyScrolled, setInitiallyScrolled] = useState(false);
+  const renderedPagesRef = useRef<Set<number>>(new Set());
 
   const allPagesLoaded = useMemo(() => {
     if (!readerState.bookData) return false;
@@ -39,30 +38,60 @@ export default function DocumentView({
     []
   );
 
+  // Reset page tracking when book changes
+  useEffect(() => {
+    setNumPagesLoaded(0);
+    renderedPagesRef.current.clear();
+    setInitiallyScrolled(false);
+  }, [readerState.bookData?.id]);
+
   useEffect(() => {
     readerState.setLoading(!allPagesLoaded);
-  }, [allPagesLoaded]);
+  }, [allPagesLoaded, readerState.setLoading]);
 
-  usePageObserver(async (pageNumber) => {
-    readerState.setBookCurrentPage(pageNumber);
-  }, pageRefs);
+  const handlePageChange = useCallback(
+    (pageNumber: number) => {
+      readerState.setBookCurrentPage(pageNumber);
+    },
+    [readerState.setBookCurrentPage]
+  );
+
+  usePageObserver(handlePageChange, pageRefs);
 
   useEffect(() => {
     if (initiallyScrolled) return;
-    console.log(readerState.loading, documentContainerRef);
     if (readerState.loading) return;
-    if (!documentContainerRef) return;
-    const page = pageRefs.current[readerState.bookData?.current_page! - 1];
+    if (!documentContainerRef?.current) return;
+    if (!readerState.bookData?.current_page) return;
+
+    const page = pageRefs.current[readerState.bookData.current_page - 1];
 
     if (!page) return;
 
-    const pageRect = page?.getBoundingClientRect();
+    const pageRect = page.getBoundingClientRect();
 
-    documentContainerRef.current?.scrollTo(0, pageRect.bottom);
+    documentContainerRef.current.scrollTo(0, pageRect.bottom);
     setInitiallyScrolled(true);
-  }, [readerState.loading, documentContainerRef, pageRefs, initiallyScrolled]);
+  }, [
+    readerState.loading,
+    readerState.bookData?.current_page,
+    documentContainerRef,
+    initiallyScrolled,
+  ]);
 
   if (!readerState.bookData) {
+    return <></>;
+  }
+
+  const documentFile = useMemo(
+    () =>
+      readerState.bookData
+        ? convertFileSrc(readerState.bookData.book_path)
+        : null,
+    [readerState.bookData?.book_path]
+  );
+
+  if (!documentFile) {
     return <></>;
   }
 
@@ -70,7 +99,7 @@ export default function DocumentView({
     <Document
       className="flex flex-col gap-2 w-fit"
       loading={<>Loading</>}
-      file={convertFileSrc(readerState.bookData?.book_path)}
+      file={documentFile}
     >
       {new Array(readerState.bookData.page_count)
         .fill(0)
@@ -90,7 +119,11 @@ export default function DocumentView({
                 pageIndex={pageIndex}
                 data-page={pageIndex + 1}
                 onRenderSuccess={() => {
-                  setNumPagesLoaded((prev) => prev + 1);
+                  // Only count each page once, even if it re-renders
+                  if (!renderedPagesRef.current.has(pageIndex)) {
+                    renderedPagesRef.current.add(pageIndex);
+                    setNumPagesLoaded((prev) => prev + 1);
+                  }
                 }}
               />
             </div>

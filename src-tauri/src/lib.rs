@@ -1,5 +1,5 @@
 mod library;
-use library::store;
+use library::commands;
 use once_cell::sync::OnceCell;
 use tauri::{AppHandle, Manager};
 
@@ -18,13 +18,13 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            store::get_books,
-            store::get_book,
-            store::get_theme,
-            store::set_theme,
-            store::load_book_paths,
-            store::delete_book,
-            store::morph_book,
+            commands::book_commands::get_books,
+            commands::book_commands::get_book,
+            commands::book_commands::get_theme,
+            commands::book_commands::set_theme,
+            commands::book_commands::load_book_paths,
+            commands::book_commands::delete_book,
+            commands::book_commands::morph_book,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

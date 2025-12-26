@@ -2,7 +2,6 @@ import { FaHome, FaList, FaPlus } from "react-icons/fa";
 import usePage, { Page } from "../lib/state/pageState";
 import { FaX } from "react-icons/fa6";
 import { useReaderState } from "../lib/state/readerState";
-import { morphBook } from "../lib/services/morphBook";
 
 export default function Header() {
   const { setPage } = usePage();
